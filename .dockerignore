@@ -1,0 +1,14 @@
+.git
+.gitignore
+.dockerignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+uploads/
+postgres_data/
+.DS_Store

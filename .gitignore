@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# Carpetas especificas del proyecto
+uploads/
+postgres_data/
+
+# Archivos temporales de benchmark
+report_benchmarks/sample_test.png
+benchmark_results.txt
+
+# Mac / OS
+.DS_Store
