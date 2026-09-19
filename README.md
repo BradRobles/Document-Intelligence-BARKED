@@ -1,86 +1,86 @@
 # Document Intelligence Asynchronous Pipeline
 
-Este proyecto implementa una arquitectura basada en el **Patrón Claim-Check** para procesar y extraer texto de documentos (PDF, TXT, PNG, JPG) de manera asíncrona. 
+This project implements an architecture based on the **Claim-Check Pattern** to asynchronously process and extract text from documents (PDF, TXT, PNG, JPG).
 
-Es ideal para escenarios donde la extracción de texto (OCR) toma tiempo y no queremos mantener la conexión HTTP bloqueada con el usuario.
+It is ideal for scenarios where text extraction (OCR) is time-consuming and we do not want to keep the HTTP connection blocked for the user.
 
-## Arquitectura y Tecnologías
-- **API Web:** FastAPI (Python 3.11)
-- **Cola Asíncrona (Queue):** Celery 5.3
-- **Message Broker & Result Backend:** Redis 7 (usando bases de datos separadas `/0` y `/1`)
-- **Base de Datos (Job Tracking):** PostgreSQL 15 + SQLAlchemy 2.0
-- **Inteligencia de Documentos (OCR/Parser):** 
-  - `PyMuPDF` (para documentos nativos PDF y TXT)
-  - `PyTesseract` (para Imágenes escaneadas)
-- **Monitoreo:** Celery Flower
-- **Infraestructura:** Docker & Docker Compose
+## Architecture and Technologies
+- **Web API:** FastAPI (Python 3.11)
+- **Asynchronous Queue:** Celery 5.3
+- **Message Broker & Result Backend:** Redis 7 (using separate databases `/0` and `/1`)
+- **Database (Job Tracking):** PostgreSQL 15 + SQLAlchemy 2.0
+- **Document Intelligence (OCR/Parser):** 
+  - `PyMuPDF` (for native PDF and TXT documents)
+  - `PyTesseract` (for scanned Images)
+- **Monitoring:** Celery Flower
+- **Infrastructure:** Docker & Docker Compose
 
 ---
 
-## 🚀 Guía de Despliegue en Otras Computadoras (Producción/Pruebas)
+## 🚀 Deployment Guide (Production/Testing)
 
-Todo el proyecto está diseñado para ser portátil (Portable) y "Dockerizado", de modo que no dependas de librerías locales instaladas en la computadora anfitriona.
+The entire project is designed to be portable and Dockerized, so you do not depend on local libraries installed on the host machine.
 
-### 1. Prerrequisitos
-La computadora anfitriona **solo** necesita tener instalado:
+### 1. Prerequisites
+The host machine **only** needs to have installed:
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
-- Git (opcional, para clonar el repositorio)
+- Git (optional, to clone the repository)
 
-### 2. Pasos de Instalación
-1. **Clonar o copiar la carpeta del proyecto** en la nueva máquina.
+### 2. Installation Steps
+1. **Clone or copy the project folder** to the new machine.
    ```bash
-   git clone <tu-repositorio> document_pipeline
+   git clone https://github.com/BradRobles/Document-Intelligence-BARKED.git document_pipeline
    cd document_pipeline
    ```
 
-2. **Levantar la Infraestructura**
-   Ejecuta el siguiente comando. Docker se encargará de descargar las imágenes de Python, instalar el binario de Tesseract en el sistema operativo del contenedor, configurar Redis, Postgres y levantar la API.
+2. **Spin up the Infrastructure**
+   Run the following command. Docker will take care of downloading the Python images, installing the Tesseract binary in the container's OS, configuring Redis, Postgres, and starting the API.
    ```bash
    docker compose up --build -d
    ```
-   *(El flag `-d` o detached mode hará que corra en segundo plano).*
+   *(The `-d` flag or detached mode will run it in the background).*
 
-3. **Verificar el Despliegue**
-   Puedes asegurar que los 5 contenedores (`api`, `worker`, `db`, `redis`, `flower`) estén sanos con:
+3. **Verify the Deployment**
+   You can ensure that all 5 containers (`api`, `worker`, `db`, `redis`, `flower`) are healthy with:
    ```bash
    docker compose ps
    ```
 
 ---
 
-## 📖 Uso del API
+## 📖 API Usage
 
-Una vez que el sistema esté corriendo, puedes interactuar con los servicios locales o a través de la IP del servidor.
+Once the system is running, you can interact with the local services or via the server's IP.
 
-### 1. Interfaz Interactiva de FastAPI (Swagger UI)
-Accede a: [http://localhost:8000/docs](http://localhost:8000/docs)
+### 1. Interactive FastAPI Interface (Swagger UI)
+Access: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-Desde aquí puedes probar los *endpoints* principales:
-- `POST /upload`: Envía un documento. El sistema aplicará el **Patrón Claim-Check** guardando el archivo físicamente en el volumen `/app/uploads`, creando un registro `PENDING` en PostgreSQL y enviando la orden a la cola de Celery/Redis.
-  - **Importante:** Revisa la respuesta (*Response Body*) y **copia el ID real** que devuelve el sistema (ej. `ec8ed813-8b0e-49d9-963c-713ad71c1ab2`). No uses el ID falso de ejemplo de Swagger.
-- `GET /jobs/{job_id}`: Pega el ID copiado para consultar el estado. Cuando cambie a `COMPLETED`, podrás ver el texto extraído (`extracted_text`) y la información adicional (`metadata_info`).
+From here you can test the main *endpoints*:
+- `POST /upload`: Upload a document. The system will apply the **Claim-Check Pattern** by physically saving the file in the `/app/uploads` volume, creating a `PENDING` record in PostgreSQL, and sending the task to the Celery/Redis queue.
+  - **Important:** Check the *Response Body* and **copy the real ID** returned by the system (e.g. `ec8ed813-8b0e-49d9-963c-713ad71c1ab2`). Do not use the fake example ID provided by Swagger.
+- `GET /jobs/{job_id}`: Paste the copied ID to check the status. When it changes to `COMPLETED`, you will be able to see the extracted text (`extracted_text`) and additional information (`metadata_info`).
 
-### 2. Panel de Monitoreo (Celery Flower)
-Accede a: [http://localhost:5555](http://localhost:5555)
+### 2. Monitoring Dashboard (Celery Flower)
+Access: [http://localhost:5555](http://localhost:5555)
 
-Este panel te permitirá visualizar los "Workers" activos, el estado de las colas, gráficas de rendimiento y los fallos (si subes un PDF corrupto, por ejemplo).
+This dashboard allows you to visualize active "Workers", queue status, performance graphs, and any failures (for example, if you upload a corrupted PDF) in real-time.
 
 ---
 
-## 🛠️ Comandos de Utilidad para Mantenimiento
+## 🛠️ Utility Commands for Maintenance
 
-**Ver logs en tiempo real (útil para ver cómo trabaja Celery):**
+**View real-time logs (useful to see how Celery works):**
 ```bash
 docker compose logs -f
 ```
 
-**Apagar todo el sistema sin borrar la base de datos:**
+**Shut down the entire system without deleting the database:**
 ```bash
 docker compose down
 ```
 
-**Apagar el sistema y borrar la base de datos (Reset total):**
+**Shut down the system and delete the database (Total Reset):**
 ```bash
 docker compose down -v
 ```
