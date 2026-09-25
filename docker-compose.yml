@@ -29,7 +29,7 @@ services:
       - .:/app
       - uploads_data:/app/uploads
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/document_pipeline
       - REDIS_BROKER_URL=redis://redis:6379/0

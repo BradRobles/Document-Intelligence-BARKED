@@ -54,7 +54,7 @@ The host machine **only** needs to have installed:
 Once the system is running, you can interact with the local services or via the server's IP.
 
 ### 1. Interactive FastAPI Interface (Swagger UI)
-Access: [http://localhost:8000/docs](http://localhost:8000/docs)
+Access: [http://localhost:8001/docs](http://localhost:8001/docs)
 
 From here you can test the main *endpoints*:
 - `POST /upload`: Upload a document. The system will apply the **Claim-Check Pattern** by physically saving the file in the `/app/uploads` volume, creating a `PENDING` record in PostgreSQL, and sending the task to the Celery/Redis queue.
