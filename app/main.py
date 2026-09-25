@@ -36,6 +36,12 @@ def upload_document(file: UploadFile = File(...), db: Session = Depends(get_db))
     Recibe un documento, lo almacena físicamente (Claim-Check) y 
     encola un trabajo asíncrono para su procesamiento.
     """
+    if file.size == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El archivo está vacío (0 bytes)"
+        )
+
     if file.size and file.size > MAX_FILE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
